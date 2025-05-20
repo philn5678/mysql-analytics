@@ -116,4 +116,31 @@ FROM customer_segments cs
 LEFT JOIN first_purchase fp ON cs.customer_unique_id = fp.customer_unique_id
 LEFT JOIN avg_review ar ON cs.customer_unique_id = ar.customer_unique_id
 LEFT JOIN payment_pref pp ON cs.customer_unique_id = pp.customer_unique_id
-LEFT JOIN top_categories tc ON cs.customer_unique_id = tc.customer_unique_id;
+LEFT JOIN top_categories tc ON cs.customer_unique_id = tc.customer_unique_id
+
+
+
+-- total customer per purchase freqency
+WITH customer_purchase_counts AS (
+    SELECT 
+        c.customer_unique_id,
+        COUNT(DISTINCT o.order_id) AS purchase_count
+    FROM 
+        orders o
+    JOIN 
+        customer c ON o.customer_id = c.customer_id
+    WHERE 
+        o.order_status = 'delivered'  -- Only count completed orders
+    GROUP BY 
+        c.customer_unique_id
+)
+
+SELECT 
+    purchase_count AS Frequency,
+    COUNT(customer_unique_id) AS total_customers
+FROM 
+    customer_purchase_counts
+GROUP BY 
+    purchase_count
+ORDER BY 
+    purchase_count;
